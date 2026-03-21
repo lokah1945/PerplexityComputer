@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "perplexity-agent": {
+      "command": "node",
+      "args": [
+        "./mcp/perplexity-agent/dist/index.js"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "pplx-GANTI_DENGAN_API_KEY_KAMU"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/fahri/projects"
+      ],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_GANTI_DENGAN_TOKEN_KAMU"
+      }
+    }
+  }
+}
