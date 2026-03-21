@@ -2,6 +2,12 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
 workspace/*
 !workspace/.gitkeep
-super-orchestrator/mcp/perplexity-agent/node_modules/
+**/node_modules/
+**/dist/
+*.log
+.brain/
+.antigravity/

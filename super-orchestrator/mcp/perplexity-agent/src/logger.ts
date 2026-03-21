@@ -18,11 +18,7 @@ function emit(level: Level, message: string, meta?: Record<string, unknown>): vo
     ...(meta ? { meta } : {})
   };
   const line = JSON.stringify(payload);
-  if (level === "error" || level === "warn") {
-    process.stderr.write(`${line}\n`);
-  } else {
-    process.stdout.write(`${line}\n`);
-  }
+  process.stderr.write(`${line}\n`);
 }
 
 export const logger = {
