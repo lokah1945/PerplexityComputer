@@ -31,6 +31,12 @@ export function smartRoute(hint: string, inputLength?: number): Preset {
     return "fast-search";
   }
 
+  // Scouting Tier: If it's a "tell me about" or "research" type task,
+  // we can use YouScout first to build a better context.
+  if (/tujuan|apa itu|jelaskan|research|cari tahu|tell me about|how does|apa maksud/.test(h)) {
+    return "deep-research"; // This will trigger scout in callAgent
+  }
+
   // Cost-aware default: Use GPT-5.1 (Pro) for large inputs unless Deep is strictly needed
   if (isLargeInput) {
     return "pro-search";

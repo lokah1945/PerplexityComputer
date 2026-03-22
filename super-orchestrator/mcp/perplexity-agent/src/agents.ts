@@ -4,7 +4,7 @@ import { logger } from "./logger.js";
 import { PRESET_MODELS, type Preset, smartRoute, PRESET_SYSTEM_PROMPTS } from "./router.js";
 import { contextAnalyzer } from "./context.js";
 import { telemetry } from "./telemetry.js";
-import { intelligence } from "./intelligence.js";
+import { scout } from "./intelligence/scout.js";
 
 const AGENT_ENDPOINT = `${config.PPLX_BASE_URL}/agent`;
 
@@ -14,13 +14,18 @@ export interface AgentCallParams {
   includeContext?: boolean;
   responseFormat?: "text" | "json_object";
   extraTools?: Array<Record<string, unknown>>;
+  scoutFirst?: boolean;
 }
+// ... (interfaces)
+
+import { intelligence } from "./intelligence.js";
 
 export interface AgentCallResult {
   text: string;
   citations: string[];
   searchResults: Array<{ title?: string; url?: string; date?: string }>;
   raw: unknown;
+  /** How long the API call took in milliseconds */
   durationMs: number;
 }
 
@@ -40,15 +45,22 @@ function extractText(data: any): string {
 }
 
 export async function callAgent(params: AgentCallParams): Promise<AgentCallResult> {
-  const context = params.includeContext ? await injectContext("") : ""; // Empty prompt for raw context
   const memory = await intelligence.scoutSimilar(params.prompt);
   const memoryPrompt = intelligence.formatMemory(memory);
 
+  // Enrichment Layer 2: Real-time Web Scout (You.com)
+  let scoutReport = "";
+  const isResearchTask = params.preset === "deep-research" || params.preset === "advanced-deep-research";
+  if (isResearchTask || params.scoutFirst) {
+    scoutReport = await scout.masterScout(params.prompt);
+  }
+
+  const context = params.includeContext ? await injectContext("") : ""; // Empty prompt for raw context
   const finalPrompt = params.prompt.trim();
 
   // Optimizing for Prompt Caching: Static parts (System + Context) come first.
-  // Dynamic parts (Memories + Prompt) come last.
-  const input = `[SYSTEM]: ${PRESET_SYSTEM_PROMPTS[params.preset]}\n\n[CONTEXT]:\n${context}\n\n[MEMORY]:\n${memoryPrompt}\n\n[TASK]:\n${finalPrompt}`;
+  // Dynamic parts (Scout + Memories + Prompt) come last.
+  const input = `[SYSTEM]: ${PRESET_SYSTEM_PROMPTS[params.preset]}\n\n[CONTEXT]:\n${context}\n\n[SCOUT]:\n${scoutReport}\n\n[MEMORY]:\n${memoryPrompt}\n\n[TASK]:\n${finalPrompt}`;
 
   const payload: Record<string, unknown> = {
     model: PRESET_MODELS[params.preset],
