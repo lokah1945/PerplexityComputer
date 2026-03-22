@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE SUPERINTENDENT | Super-Orchestrator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #00f2fe;
+            --accent-glow: rgba(0, 242, 254, 0.3);
+            --text-main: #ffffff;
+            --text-dim: #999999;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 20%, #1a1a1a 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, #0d0d0d 0%, transparent 40%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 20px;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .card-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            font-size: 42px;
+            font-weight: 600;
+        }
+
+        .card-sub {
+            font-size: 14px;
+            margin-top: 10px;
+            color: var(--accent);
+        }
+
+        .main-view {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            min-height: 400px;
+        }
+
+        .panel h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .lesson-list { list-style: none; }
+        .lesson-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 14px;
+            color: #eee;
+        }
+        .lesson-item:last-child { border-bottom: none; }
+
+        .category-tag {
+            font-size: 10px;
+            background: var(--glass-border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 900px) {
+            .grid, .main-view { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">SUPERINTENDENT</div>
+            <div><span class="status-dot"></span> ORCHESTRATOR v9.0 ONLINE</div>
+        </header>
+
+        <section class="grid">
+            <div class="card">
+                <div class="card-label">Total API Spend</div>
+                <div class="card-value" id="total-cost">$0.0000</div>
+                <div class="card-sub">Tracking Perplexity API</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Total Cost Saved</div>
+                <div class="card-value" id="total-saved">$0.0000</div>
+                <div class="card-sub" id="saving-pct">0% Efficient</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Intelligence Lessons</div>
+                <div class="card-value" id="lesson-count">0</div>
+                <div class="card-sub">Active Multi-Loop Learning</div>
+            </div>
+        </section>
+
+        <section class="main-view">
+            <div class="panel">
+                <h3><span>🧠 RECENT INTELLIGENCE</span> <span id="sync-time">SYNCING...</span></h3>
+                <div id="lesson-list" class="lesson-list">
+                </div>
+            </div>
+            <div class="panel">
+                <h3><span>⚖️ COUNCIL STATUS</span></h3>
+                <div style="text-align: center; padding-top: 100px; color: var(--text-dim);">
+                    <div style="font-size: 40px; margin-bottom: 20px;">⚡</div>
+                    READY FOR CONSENSUS
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('total-cost').innerText = '$' + data.totalCost;
+                document.getElementById('total-saved').innerText = '$' + data.totalSaved;
+                
+                const efficiency = (parseFloat(data.totalSaved) / (parseFloat(data.totalCost) + parseFloat(data.totalSaved)) * 100 || 0).toFixed(1);
+                document.getElementById('saving-pct').innerText = efficiency + '% Cost Efficient';
+                document.getElementById('sync-time').innerText = new Date(data.lastUpdate).toLocaleTimeString();
+            } catch (e) {
+                console.error("Stats sync failed", e);
+            }
+        }
+
+        async function updateIntelligence() {
+            try {
+                const res = await fetch('/api/intelligence');
+                const data = await res.json();
+                
+                document.getElementById('lesson-count').innerText = data.lessons.total;
+                
+                const list = document.getElementById('lesson-list');
+                list.innerHTML = '';
+                
+                for (const [cat, count] of Object.entries(data.lessons.byCategory)) {
+                    const item = document.createElement('div');
+                    item.className = 'lesson-item';
+                    item.innerHTML = `<span class="category-tag">${cat}</span> ${count} memory entries identified and optimized.`;
+                    list.appendChild(item);
+                }
+            } catch (e) {
+                console.error("Intelligence sync failed", e);
+            }
+        }
+
+        setInterval(updateStats, 10000);
+        setInterval(updateIntelligence, 10000);
+        
+        updateStats();
+        updateIntelligence();
+    </script>
+</body>
+</html>
