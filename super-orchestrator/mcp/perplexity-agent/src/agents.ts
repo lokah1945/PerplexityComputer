@@ -5,6 +5,7 @@ import { PRESET_MODELS, type Preset, smartRoute, PRESET_SYSTEM_PROMPTS } from ".
 import { contextAnalyzer } from "./context.js";
 import { telemetry } from "./telemetry.js";
 import { scout } from "./intelligence/scout.js";
+import { intelligence } from "./intelligence.js";
 
 const AGENT_ENDPOINT = `${config.PPLX_BASE_URL}/agent`;
 
@@ -16,16 +17,12 @@ export interface AgentCallParams {
   extraTools?: Array<Record<string, unknown>>;
   scoutFirst?: boolean;
 }
-// ... (interfaces)
-
-import { intelligence } from "./intelligence.js";
 
 export interface AgentCallResult {
   text: string;
   citations: string[];
   searchResults: Array<{ title?: string; url?: string; date?: string }>;
   raw: unknown;
-  /** How long the API call took in milliseconds */
   durationMs: number;
 }
 
@@ -48,19 +45,26 @@ export async function callAgent(params: AgentCallParams): Promise<AgentCallResul
   const memory = await intelligence.scoutSimilar(params.prompt);
   const memoryPrompt = intelligence.formatMemory(memory);
 
-  // Enrichment Layer 2: Real-time Web Scout (You.com)
   let scoutReport = "";
   const isResearchTask = params.preset === "deep-research" || params.preset === "advanced-deep-research";
   if (isResearchTask || params.scoutFirst) {
     scoutReport = await scout.masterScout(params.prompt);
   }
 
-  const context = params.includeContext ? await injectContext("") : ""; // Empty prompt for raw context
+  const context = params.includeContext ? await injectContext("") : ""; 
   const finalPrompt = params.prompt.trim();
 
-  // Optimizing for Prompt Caching: Static parts (System + Context) come first.
-  // Dynamic parts (Scout + Memories + Prompt) come last.
-  const input = `[SYSTEM]: ${PRESET_SYSTEM_PROMPTS[params.preset]}\n\n[CONTEXT]:\n${context}\n\n[SCOUT]:\n${scoutReport}\n\n[MEMORY]:\n${memoryPrompt}\n\n[TASK]:\n${finalPrompt}`;
+  // ─── CACHE STRATEGY v7.0 ──────────────────────────────────────────────────
+  // 1. Static Prefix: System and Project Context (Stable across tasks)
+  // 2. Medium Stability: Scout and Memory (Task-specific but reusable in turn)
+  // 3. Dynamic Tail: User Query (Changes every call)
+  const input = [
+    `[SYSTEM]: ${PRESET_SYSTEM_PROMPTS[params.preset]}`,
+    `[PROJECT_CONTEXT]:\n${context}`,
+    `[MEMORY_LESSONS]:\n${memoryPrompt}`,
+    `[RESEARCH_SCOUT]:\n${scoutReport}`,
+    `[USER_TASK]:\n${finalPrompt}`
+  ].filter(s => s.length > 20).join("\n\n---\n\n");
 
   const payload: Record<string, unknown> = {
     model: PRESET_MODELS[params.preset],
@@ -74,9 +78,8 @@ export async function callAgent(params: AgentCallParams): Promise<AgentCallResul
     ]
   };
 
-  // Cost-Optimization: Cap expensive model output
   if (params.preset === "advanced-deep-research") {
-    payload.max_tokens = 2000; // Prevent runaway expensive generation
+    payload.max_tokens = 2000;
   }
 
   if (params.responseFormat) {
@@ -104,9 +107,14 @@ export async function callAgent(params: AgentCallParams): Promise<AgentCallResul
     throw err;
   } finally {
     const durationMs = Date.now() - startMs;
+    const usage = data?.usage || {};
+    
     telemetry.record({
       preset: params.preset,
       durationMs,
+      tokens: usage.total_tokens || usage.tokens,
+      cacheReadTokens: usage.cache_read_tokens || usage.prompt_tokens_details?.cached_tokens,
+      cacheCreatedTokens: usage.cache_creation_tokens,
       success,
       error: errorMsg
     });
