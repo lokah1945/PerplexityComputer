@@ -1,24 +1,26 @@
 {
   "name": "perplexity-agent-mcp",
-  "version": "4.0.0",
-  "private": true,
+  "version": "6.0.0",
+  "description": "Perplexity-powered AI Agent with Auto-Learning and Scouting layer.",
   "type": "module",
-  "description": "Super-orchestrator MCP server for Perplexity Agent API",
   "main": "dist/index.js",
   "scripts": {
     "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});\"",
     "build": "npm run clean && tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "benchmark": "tsx src/intelligence/benchmark.ts",
+    "evolve": "tsx scripts/evolve.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
-    "mongodb": "^7.1.0",
-    "zod": "^3.25.76"
+    "mongodb": "^6.14.2",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^24.5.2",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "@types/node": "^22.13.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   }
 }
