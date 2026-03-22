@@ -14,15 +14,21 @@ export interface ConsensusReport {
 }
 
 export class ConsensusEngine {
+  /**
+   * Runs a task through the "Council of Agents" for high-stakes decisions.
+   */
   public async runConsensus(prompt: string, preset: Preset): Promise<ConsensusReport> {
     const startMs = Date.now();
     logger.info("Invoking the Council of Agents for high-stakes reasoning...");
 
+    // 1. Parallel Execution of two distinct top-tier models
+    // We use different presets to trigger different models/behaviors
     const [resultA, resultB] = await Promise.all([
       callAgent({ prompt, preset, includeContext: true }),
       callAgent({ prompt, preset: "advanced-deep-research", includeContext: true })
     ]);
 
+    // 2. Comparison Logic (The "Judge" Pass)
     const judgePrompt = `Sebagai Hakim AI, bandingkan dua solusi berikut untuk tugas: "${prompt}"
     
     SOLUSI A:
@@ -40,13 +46,14 @@ export class ConsensusEngine {
 
     const judgeResult = await callAgent({
       prompt: judgePrompt,
-      preset: "pro-search", 
+      preset: "pro-search", // Fast but smart enough for logic check
       responseFormat: "json_object"
     });
 
     try {
       const parsed = JSON.parse(judgeResult.text);
       
+      // 3. Tie-Breaker (If needed)
       let finalDecision = parsed.synthesis;
       if (!parsed.agreed) {
         logger.warn("Council disagreement detected. Invoking Tie-Breaker...");
@@ -70,7 +77,7 @@ export class ConsensusEngine {
     } catch (err) {
       logger.error("Consensus parsing failed", { error: String(err) });
       return {
-        agreed: true,
+        agreed: true, // Fallback to A
         finalDecision: resultA.text,
         rationale: "Consensus system error, defaulting to primary agent.",
         contradictions: [],

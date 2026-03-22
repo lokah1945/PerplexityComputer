@@ -152,6 +152,7 @@
             text-transform: uppercase;
         }
 
+        /* Responsive */
         @media (max-width: 900px) {
             .grid, .main-view { grid-template-columns: 1fr; }
         }
@@ -186,6 +187,7 @@
             <div class="panel">
                 <h3><span>🧠 RECENT INTELLIGENCE</span> <span id="sync-time">SYNCING...</span></h3>
                 <div id="lesson-list" class="lesson-list">
+                    <!-- Lessons will flow here -->
                 </div>
             </div>
             <div class="panel">
@@ -224,6 +226,8 @@
                 const list = document.getElementById('lesson-list');
                 list.innerHTML = '';
                 
+                // Since getStats doesn't return full list, we simulate or wait for expansion
+                // For now, show categories
                 for (const [cat, count] of Object.entries(data.lessons.byCategory)) {
                     const item = document.createElement('div');
                     item.className = 'lesson-item';
@@ -235,9 +239,11 @@
             }
         }
 
+        // Run every 10 seconds
         setInterval(updateStats, 10000);
         setInterval(updateIntelligence, 10000);
         
+        // Initial load
         updateStats();
         updateIntelligence();
     </script>
