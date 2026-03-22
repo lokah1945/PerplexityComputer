@@ -13,13 +13,14 @@ export interface BenchmarkReport {
 
 export class BenchmarkEngine {
   public async runBenchmark(): Promise<BenchmarkReport> {
-    const samples = await intelligence.getGoldenSamples(5);
+    const samples = await intelligence.getGoldenSamples(5); // Test top 5 successful traces
     if (samples.length === 0) {
       return { totalTasks: 0, passedTasks: 0, precisionScore: 0, avgDurationMs: 0, avgTokens: 0, regressions: [] };
     }
 
     let passed = 0;
     let totalDuration = 0;
+    let totalTokens = 0;
     const regressions: string[] = [];
 
     logger.info(`Starting benchmark run with ${samples.length} tasks...`);
@@ -35,6 +36,8 @@ export class BenchmarkEngine {
 
         const duration = Date.now() - startMs;
         totalDuration += duration;
+        // In a real scenario, we would compare the output text similarity or run a validator
+        // For now, if the API returns text, we consider it a pass for the benchmark logic demo
         if (result.text.length > 100) {
           passed++;
         } else {
@@ -50,7 +53,7 @@ export class BenchmarkEngine {
       passedTasks: passed,
       precisionScore: (passed / samples.length) * 100,
       avgDurationMs: totalDuration / samples.length,
-      avgTokens: 0,
+      avgTokens: 0, // Placeholder for token tracking
       regressions
     };
 

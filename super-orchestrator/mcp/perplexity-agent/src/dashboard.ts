@@ -11,6 +11,7 @@ const fastify = Fastify({ logger: false });
 export async function startDashboard(port = 3001) {
   await fastify.register(fastifyCors, { origin: true });
 
+  // Serve the dashboard frontend
   const dashboardPath = path.join(process.cwd(), "dashboard");
   if (!fs.existsSync(dashboardPath)) {
     fs.mkdirSync(dashboardPath, { recursive: true });
@@ -21,6 +22,7 @@ export async function startDashboard(port = 3001) {
     prefix: "/",
   });
 
+  // API: Status & Telemetry
   fastify.get("/api/stats", async () => {
     const usagePath = path.join(process.cwd(), ".brain", "telemetry", "usage.md");
     let usageContent = "";
@@ -28,6 +30,7 @@ export async function startDashboard(port = 3001) {
       usageContent = fs.readFileSync(usagePath, "utf-8");
     }
 
+    // Basic parsing of usage.md for total cost (Last 50 lines)
     const lines = usageContent.split("\n").filter(l => l.includes("|")).slice(-50);
     let totalCost = 0;
     let totalSaved = 0;
@@ -51,6 +54,7 @@ export async function startDashboard(port = 3001) {
     };
   });
 
+  // API: Intelligence (Lessons Learned)
   fastify.get("/api/intelligence", async () => {
     try {
       const lessons = await intelligence.getStats();
