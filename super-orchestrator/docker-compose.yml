@@ -1,0 +1,14 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local:latest
+    container_name: perplexity-ai-brain
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=admin
+      - MONGODB_INITDB_ROOT_PASSWORD=password123
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
