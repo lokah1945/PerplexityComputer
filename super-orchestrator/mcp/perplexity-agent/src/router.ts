@@ -1,4 +1,25 @@
-import { PRESET_MODELS, PRESET_SYSTEM_PROMPTS } from "./router.js";
+export type Preset =
+  | "fast-search"
+  | "pro-search"
+  | "deep-research"
+  | "advanced-deep-research"
+  | "consensus-reasoning";
+
+export const PRESET_MODELS: Record<Preset, string> = {
+  "fast-search": "xai/grok-4-1-fast-non-reasoning",
+  "pro-search": "openai/gpt-5.1",
+  "deep-research": "openai/gpt-5.2",
+  "advanced-deep-research": "anthropic/claude-opus-4-6",
+  "consensus-reasoning": "multi-agent-consensus"
+};
+
+export const PRESET_SYSTEM_PROMPTS: Record<Preset, string> = {
+  "fast-search": "You are a speed-focused research assistant. Provide concise, accurate facts. Use web search extensively.",
+  "pro-search": "You are a professional developer and debugger. Analyze errors deeply, suggest robust fixes, and follow best practices.",
+  "deep-research": "You are a comprehensive research specialist. Synthesize information from multiple sources into a structured report.",
+  "advanced-deep-research": "You are a world-class software architect and lead engineer. Design complex systems, generate production-ready code, and explain architectural trade-offs.",
+  "consensus-reasoning": "Council of Agents mode. Multi-model consensus for high-stakes decisions."
+};
 
 /**
  * Strategic auto-routing: determine the best preset based on task requirements
@@ -7,13 +28,11 @@ import { PRESET_MODELS, PRESET_SYSTEM_PROMPTS } from "./router.js";
 export function smartRoute(hint: string, inputLength?: number): Preset {
   const h = hint.toLowerCase();
   
-  // Cost-Optimization: If input is huge (>150k chars) and not explicitly complex,
-  // use the cheaper Pro model instead of Deep Research.
   const isLargeInput = (inputLength || 0) > 150000;
 
   // 1. Architecture & Design (Highest Complexity)
-  if (/arch|desain|arsitekt|rancang|blueprint|system design|trade-off|schema|db design/.test(h)) {
-    return "advanced-deep-research";
+  if (/arch|desain|arsitekt|rancang|blueprint|system design|trade-off|schema|db design|keamanan|security/.test(h)) {
+    return "consensus-reasoning";
   }
 
   // 2. Implementation & Multi-file (High Complexity)
@@ -21,27 +40,21 @@ export function smartRoute(hint: string, inputLength?: number): Preset {
     return "advanced-deep-research";
   }
 
-  // 3. Debugging & Testing (Medium Complexity)
   if (/debug|fix|patch|error|bug|test|testing|lint|warning|issue|fails/.test(h)) {
     return "pro-search";
   }
 
-  // 4. Quick lookups & facts (Low Complexity)
   if (/quick|lookup|version|check|cek|versi|latest|terbaru|compare|bandingkan|npm version|library version/.test(h)) {
     return "fast-search";
   }
 
-  // Scouting Tier: If it's a "tell me about" or "research" type task,
-  // we can use YouScout first to build a better context.
   if (/tujuan|apa itu|jelaskan|research|cari tahu|tell me about|how does|apa maksud/.test(h)) {
-    return "deep-research"; // This will trigger scout in callAgent
+    return "deep-research"; 
   }
 
-  // Cost-aware default: Use GPT-5.1 (Pro) for large inputs unless Deep is strictly needed
   if (isLargeInput) {
     return "pro-search";
   }
 
-  // Default to balanced research
   return "deep-research";
 }
